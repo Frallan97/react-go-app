@@ -3,5 +3,4 @@ dist/
 .vscode/
 .idea/
 .DS_Store
-bun.lockb
 .bun/ 
