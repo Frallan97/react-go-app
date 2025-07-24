@@ -1,0 +1,31 @@
+replicaCount: 1
+
+frontend:
+  image:
+    repository: ghcr.io/frallan97/react-go-app-frontend
+    tag: "0.1.0"
+  service:
+    port: 80
+
+backend:
+  image:
+    repository: ghcr.io/frallan97/react-go-app-backend
+    tag: "0.1.0"
+  service:
+    port: 8080
+
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  tls:
+    - hosts:
+        - react-go-app.web.franssjostrom.com
+      secretName: web-wildcard-tls
+  hosts:
+    - host: react-go-app.web.franssjostrom.com
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix 
