@@ -1,10 +1,11 @@
 # build stage
-FROM node:18 AS build
+FROM oven/bun:1 AS build
 WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
 COPY src/ ./src
-RUN yarn build
+COPY index.html ./
+RUN bun run build
 
 # final stage
 FROM nginx:alpine

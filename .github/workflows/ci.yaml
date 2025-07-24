@@ -12,12 +12,6 @@ jobs:
       with:
         persist-credentials: true
 
-    - name: Set minor version
-      id: ver
-      run: |
-        TAG="1.${GITHUB_RUN_NUMBER}.0"
-        echo "TAG=$TAG" >> $GITHUB_OUTPUT
-
     - name: Log in to GHCR
       uses: docker/login-action@v2
       with:
@@ -30,25 +24,14 @@ jobs:
       with:
         context: ./frontend
         push: true
-        tags: ghcr.io/frallan97/react-go-app-frontend:${{ steps.ver.outputs.TAG }}
+        tags: ghcr.io/frallan97/react-go-app-frontend:latest
 
     - name: Build & push backend image
       uses: docker/build-push-action@v4
       with:
         context: ./backend
         push: true
-        tags: ghcr.io/frallan97/react-go-app-backend:${{ steps.ver.outputs.TAG }}
-
-    - name: Bump Helm values
-      run: |
-        TAG=${{ steps.ver.outputs.TAG }}
-        yq eval ".frontend.image.tag = \"${TAG}\""  -i charts/react-go-app/values.yaml
-        yq eval ".backend.image.tag = \"${TAG}\""   -i charts/react-go-app/values.yaml
-        yq eval ".appVersion = \"${TAG}\""          -i charts/react-go-app/Chart.yaml
-        git add charts/react-go-app/values.yaml charts/react-go-app/Chart.yaml
-        git commit -m "ci: bump to ${TAG}"
-        git push origin main
-      shell: bash
+        tags: ghcr.io/frallan97/react-go-app-backend:latest
 
     - name: Done
-      run: echo "Published images and chart bumped to ${{ steps.ver.outputs.TAG }}" 
+      run: echo "Published images with tag 'latest'" 
