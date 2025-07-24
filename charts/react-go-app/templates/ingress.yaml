@@ -16,21 +16,23 @@ spec:
     secretName: {{ .secretName }}
 {{- end }}
   rules:
-  - host: {{ .Values.ingress.hosts[0].host }}
+{{- range .Values.ingress.hosts }}
+  - host: {{ .host }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ .Release.Name }}-frontend
+            name: {{ $.Release.Name }}-frontend
             port:
-              number: {{ .Values.frontend.service.port }}
+              number: {{ $.Values.frontend.service.port }}
       - path: /api
         pathType: Prefix
         backend:
           service:
-            name: {{ .Release.Name }}-backend
+            name: {{ $.Release.Name }}-backend
             port:
-              number: {{ .Values.backend.service.port }}
+              number: {{ $.Values.backend.service.port }}
+{{- end }}
 {{- end }} 
