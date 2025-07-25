@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 
 	_ "github.com/frallan97/react-go-app-backend/docs"
@@ -30,6 +31,8 @@ type Message struct {
 type MessageInput struct {
 	Content string `json:"content"`
 }
+
+var dbConnected atomic.Bool
 
 func main() {
 	// Print all environment variables for debugging
@@ -72,31 +75,30 @@ func main() {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Printf("failed to open DB: %v", err)
-		os.Exit(1)
 	}
 
-	// Set up connection pool parameters
-	db.SetMaxOpenConns(10)                  // max 10 open connections
-	db.SetMaxIdleConns(5)                   // max 5 idle connections
-	db.SetConnMaxIdleTime(5 * time.Minute)  // idle timeout
-	db.SetConnMaxLifetime(30 * time.Minute) // max lifetime
-
-	// Try to ping with a timeout
-	done := make(chan error, 1)
+	// Try to ping with a timeout, but do not exit on failure
 	go func() {
-		done <- db.Ping()
-	}()
-	select {
-	case err := <-done:
-		if err != nil {
-			log.Printf("unable to ping DB: %v", err)
-			os.Exit(1)
+		for {
+			if db != nil {
+				err := db.Ping()
+				if err == nil {
+					if !dbConnected.Load() {
+						log.Println("connected to Postgres successfully")
+						dbConnected.Store(true)
+					}
+				} else {
+					if dbConnected.Load() {
+						log.Printf("lost connection to DB: %v", err)
+						dbConnected.Store(false)
+					} else {
+						log.Printf("unable to ping DB: %v", err)
+					}
+				}
+			}
+			time.Sleep(5 * time.Second)
 		}
-		log.Println("connected to Postgres successfully")
-	case <-time.After(10 * time.Second):
-		log.Printf("timeout trying to ping DB")
-		os.Exit(1)
-	}
+	}()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler(db))
@@ -119,6 +121,10 @@ func main() {
 // @Router      /health [get]
 func healthHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !dbConnected.Load() {
+			http.Error(w, `{"status":"db unavailable"}`, http.StatusServiceUnavailable)
+			return
+		}
 		if err := db.Ping(); err != nil {
 			http.Error(w, `{"status":"error"}`, http.StatusInternalServerError)
 			return
@@ -146,6 +152,10 @@ func healthHandler(db *sql.DB) http.HandlerFunc {
 // @Router      /api/messages [post]
 func messagesHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !dbConnected.Load() {
+			http.Error(w, `{"status":"db unavailable"}`, http.StatusServiceUnavailable)
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
 			rows, err := db.Query(`SELECT id, content, created_at FROM messages ORDER BY id`)
