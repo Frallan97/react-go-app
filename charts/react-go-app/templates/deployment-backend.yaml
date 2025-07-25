@@ -20,7 +20,7 @@ spec:
         - containerPort: {{ .Values.backend.service.port }}
         env:
         - name: DB_HOST
-          value: {{ include "react-go-app.fullname" . }}-db
+          value: {{ .Release.Name }}-db
         - name: DB_PORT
           value: "5432"
         - name: DB_USER
@@ -28,7 +28,7 @@ spec:
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "react-go-app.fullname" . }}-db-secret
+              name: {{ .Release.Name }}-db-secret
               key: DB_PASSWORD
         - name: DB_NAME
           value: {{ .Values.db.name }}
