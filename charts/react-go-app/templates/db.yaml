@@ -1,0 +1,78 @@
+{{- if .Values.db.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "react-go-app.fullname" . }}-db-secret
+  labels:
+    app.kubernetes.io/name: {{ include "react-go-app.name" . }}
+type: Opaque
+stringData:
+  DB_PASSWORD: {{ .Values.db.password }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "react-go-app.fullname" . }}-db-pvc
+  labels:
+    app.kubernetes.io/name: {{ include "react-go-app.name" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.db.pvcSize }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "react-go-app.fullname" . }}-db
+  labels:
+    app.kubernetes.io/name: {{ include "react-go-app.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "react-go-app.name" . }}-db
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "react-go-app.name" . }}-db
+    spec:
+      containers:
+      - name: postgresql
+        image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
+        env:
+        - name: POSTGRESQL_USERNAME
+          value: "{{ .Values.db.user }}"
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "react-go-app.fullname" . }}-db-secret
+              key: DB_PASSWORD
+        - name: POSTGRESQL_DATABASE
+          value: "{{ .Values.db.name }}"
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: data
+          mountPath: /bitnami/postgresql
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "react-go-app.fullname" . }}-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "react-go-app.fullname" . }}-db
+  labels:
+    app.kubernetes.io/name: {{ include "react-go-app.name" . }}-db
+spec:
+  ports:
+  - port: 5432
+    targetPort: postgres
+  selector:
+    app.kubernetes.io/name: {{ include "react-go-app.name" . }}-db
+{{- end }} 

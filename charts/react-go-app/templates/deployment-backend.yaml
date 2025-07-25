@@ -18,4 +18,18 @@ spec:
         image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
         ports:
         - containerPort: {{ .Values.backend.service.port }}
+        env:
+        - name: DB_HOST
+          value: {{ include "react-go-app.fullname" . }}-db
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: {{ .Values.db.user }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "react-go-app.fullname" . }}-db-secret
+              key: DB_PASSWORD
+        - name: DB_NAME
+          value: {{ .Values.db.name }}
 {{- end }} 

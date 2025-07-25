@@ -66,7 +66,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add charts/react-go-app/values.yaml charts/react-go-app/Chart.yaml
-          git commit -m "ci: bump chart to ${{ steps.tag.outputs.TAG }}"
+          git commit -m "ci: bump chart to ${{ steps.tag.outputs.TAG }} [skip ci]"
           git push origin main
 
       # 8) (Optional) Notify or output

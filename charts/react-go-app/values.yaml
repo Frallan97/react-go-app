@@ -25,4 +25,20 @@ ingress:
         - path: /
           pathType: Prefix
         - path: /api
-          pathType: Prefix
+          pathType: Prefix 
+
+# -------------------------------------------------------------------
+# In‑cluster Postgres settings
+db:
+  enabled: true
+  user:     appuser
+  password: apppass
+  name:     appdb
+
+  # The image to use for Postgres
+  image:
+    repository: bitnami/postgresql
+    tag:        15
+
+  # Size of your persistent volume
+  pvcSize: 1Gi 
