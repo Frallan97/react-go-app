@@ -62,6 +62,8 @@ func main() {
 		)
 	}
 
+	log.Printf("Connecting to Postgres with DSN: %s", dsn)
+
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
