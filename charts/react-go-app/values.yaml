@@ -2,13 +2,13 @@ replicaCount: 1
 frontend:
   image:
     repository: ghcr.io/frallan97/react-go-app-frontend
-    tag: "1.20.0"
+    tag: "1.21.0"
   service:
     port: 80
 backend:
   image:
     repository: ghcr.io/frallan97/react-go-app-backend
-    tag: "1.20.0"
+    tag: "1.21.0"
   service:
     port: 8080
 ingress:
