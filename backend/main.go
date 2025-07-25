@@ -1,3 +1,8 @@
+// @title        React-Go-App API
+// @version      0.1.0
+// @description  Auto‑generated Swagger docs
+// @host         localhost:8080
+// @BasePath     /
 package main
 
 import (
@@ -9,7 +14,9 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/frallan97/react-go-app-backend/docs"
 	_ "github.com/lib/pq"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // Message represents one row in messages.
@@ -17,6 +24,11 @@ type Message struct {
 	ID        int       `json:"id"`
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// MessageInput represents the input for creating a message.
+type MessageInput struct {
+	Content string `json:"content"`
 }
 
 func main() {
@@ -81,6 +93,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler(db))
 	mux.HandleFunc("/api/messages", messagesHandler(db))
+	// Serve swagger UI at /docs/index.html
+	mux.Handle("/docs/", httpSwagger.WrapHandler)
 
 	log.Println("listening on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
@@ -88,6 +102,13 @@ func main() {
 	}
 }
 
+// healthHandler responds with {"status":"ok"}
+// @Summary     Health check
+// @Description Returns 200 if DB is reachable
+// @Tags        health
+// @Produce     json
+// @Success     200  {object}  map[string]string
+// @Router      /health [get]
 func healthHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := db.Ping(); err != nil {
@@ -99,6 +120,22 @@ func healthHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+// messagesHandler lists or creates messages
+// @Summary     List messages
+// @Description Get all messages
+// @Tags        messages
+// @Produce     json
+// @Success     200  {array}   Message
+// @Router      /api/messages [get]
+//
+// @Summary     Create message
+// @Description Insert a new message
+// @Tags        messages
+// @Accept      json
+// @Produce     json
+// @Param       msg  body   MessageInput  true  "message payload"
+// @Success     201   {object}  map[string]int
+// @Router      /api/messages [post]
 func messagesHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -123,9 +160,7 @@ func messagesHandler(db *sql.DB) http.HandlerFunc {
 			json.NewEncoder(w).Encode(msgs)
 
 		case http.MethodPost:
-			var in struct {
-				Content string `json:"content"`
-			}
+			var in MessageInput
 			if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 				http.Error(w, "invalid payload", 400)
 				return

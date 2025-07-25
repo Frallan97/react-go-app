@@ -20,13 +20,13 @@ spec:
   - host: {{ .host }}
     http:
       paths:
-      - path: /
+      - path: /docs
         pathType: Prefix
         backend:
           service:
-            name: {{ $.Release.Name }}-frontend
+            name: {{ $.Release.Name }}-backend
             port:
-              number: {{ $.Values.frontend.service.port }}
+              number: {{ $.Values.backend.service.port }}
       - path: /api
         pathType: Prefix
         backend:
@@ -34,5 +34,12 @@ spec:
             name: {{ $.Release.Name }}-backend
             port:
               number: {{ $.Values.backend.service.port }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $.Release.Name }}-frontend
+            port:
+              number: {{ $.Values.frontend.service.port }}
 {{- end }}
 {{- end }} 

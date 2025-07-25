@@ -1,0 +1,106 @@
+basePath: /
+definitions:
+  main.Message:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  main.MessageInput:
+    properties:
+      content:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Auto‑generated Swagger docs
+  title: React-Go-App API
+  version: 0.1.0
+paths:
+  /api/messages:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Get all messages
+        Insert a new message
+      parameters:
+      - description: message payload
+        in: body
+        name: msg
+        required: true
+        schema:
+          $ref: '#/definitions/main.MessageInput'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Message'
+            type: array
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+      summary: Create message
+      tags:
+      - messages
+      - messages
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Get all messages
+        Insert a new message
+      parameters:
+      - description: message payload
+        in: body
+        name: msg
+        required: true
+        schema:
+          $ref: '#/definitions/main.MessageInput'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Message'
+            type: array
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+      summary: Create message
+      tags:
+      - messages
+      - messages
+  /health:
+    get:
+      description: Returns 200 if DB is reachable
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+swagger: "2.0"
