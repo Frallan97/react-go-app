@@ -32,6 +32,12 @@ type MessageInput struct {
 }
 
 func main() {
+	// Print all environment variables for debugging
+	log.Println("Environment variables at startup:")
+	for _, e := range os.Environ() {
+		log.Println(e)
+	}
+
 	// Read configuration from environment
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
@@ -61,12 +67,12 @@ func main() {
 			dbHost, dbPort, dbUser, dbPass, dbName,
 		)
 	}
-
-	log.Printf("Connecting to Postgres with DSN: %s", dsn)
+	log.Printf("Attempting to connect to Postgres with DSN: %s", dsn)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("failed to open DB: %v", err)
+		log.Printf("failed to open DB: %v", err)
+		os.Exit(1)
 	}
 
 	// Set up connection pool parameters
@@ -75,22 +81,22 @@ func main() {
 	db.SetConnMaxIdleTime(5 * time.Minute)  // idle timeout
 	db.SetConnMaxLifetime(30 * time.Minute) // max lifetime
 
-	// Retry logic: try to ping the DB for up to 30 seconds
-	maxWait := 30 * time.Second
-	waitInterval := 2 * time.Second
-	start := time.Now()
-	for {
-		err := db.Ping()
-		if err == nil {
-			break
+	// Try to ping with a timeout
+	done := make(chan error, 1)
+	go func() {
+		done <- db.Ping()
+	}()
+	select {
+	case err := <-done:
+		if err != nil {
+			log.Printf("unable to ping DB: %v", err)
+			os.Exit(1)
 		}
-		if time.Since(start) > maxWait {
-			log.Fatalf("unable to ping DB after %v: %v", maxWait, err)
-		}
-		log.Printf("waiting for DB to be ready: %v", err)
-		time.Sleep(waitInterval)
+		log.Println("connected to Postgres successfully")
+	case <-time.After(10 * time.Second):
+		log.Printf("timeout trying to ping DB")
+		os.Exit(1)
 	}
-	log.Println("connected to Postgres successfully (using connection pool)")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler(db))
