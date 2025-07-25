@@ -62,9 +62,6 @@ jobs:
 
       # 7) Commit & push chart bump
       - name: Commit and push chart bump
-        with:
-          persist-credentials: true
-          fetch-depth: 0
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
