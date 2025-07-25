@@ -2,4 +2,4 @@ apiVersion: v2
 name: react-go-app
 description: React frontend + Go backend
 version: 0.1.0
-appVersion: "1.16.0"
+appVersion: "1.17.0"
