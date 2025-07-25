@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+# ← give GITHUB_TOKEN the right scopes
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -12,7 +17,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: true
+          token: ${{ secrets.CR_PAT }}
+          fetch-depth: 0
 
       # 2) Compute the next tag
       - name: Compute image tag
@@ -56,6 +62,9 @@ jobs:
 
       # 7) Commit & push chart bump
       - name: Commit and push chart bump
+        with:
+          persist-credentials: true
+          fetch-depth: 0
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
